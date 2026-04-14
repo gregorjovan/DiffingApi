@@ -18,7 +18,9 @@ public static class ApplicationEndpoints
             .WithName("PutLeft")
             .WithTags("PutLeft")
             .Produces(StatusCodes.Status201Created)
-            .ProducesProblem(StatusCodes.Status400BadRequest);
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .WithSummary("Upload left payload")
+            .WithDescription("Stores the Base64 encoded left payload for the given id.");
 
         app.MapPut("/{id}/right", (string id, DiffRequest request, DiffContentStore store) =>
         {
@@ -28,7 +30,9 @@ public static class ApplicationEndpoints
             .WithName("PutRight")
             .WithTags("PutRight")
             .Produces(StatusCodes.Status201Created)
-            .ProducesProblem(StatusCodes.Status400BadRequest);
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .WithSummary("Upload right payload")
+            .WithDescription("Stores the Base64 encoded right payload for the given id.");
 
         app.MapGet("/{id}", (string id, DiffContentStore store) =>
         {
@@ -51,6 +55,15 @@ public static class ApplicationEndpoints
             .WithName("GetDiff")
             .WithTags("GetDiff")
             .Produces(StatusCodes.Status200OK)
-            .ProducesProblem(StatusCodes.Status404NotFound);
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .WithSummary("Compare left and right payloads")
+            .WithDescription("""
+            Compares the left and right Base64 encoded payloads for the specified id.
+
+            Returns:
+            - Equals if payloads are identical
+            - SizeDoNotMatch if payload sizes differ
+            - ContentDoNotMatch if payloads differ but have equal length
+            """);
     }
 }
