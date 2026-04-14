@@ -10,12 +10,23 @@ public static class ApplicationEndpoints
         var diffGroup = app.MapGroup("/v1/diff")
             .WithTags("DiffingApi"); ;
 
-        diffGroup.MapPut("/{id}/left", (string id, DiffRequest? request, DiffContentStore store) =>
+        diffGroup.MapPut("/{id}/left", (string id, DiffRequest request, DiffContentStore store) =>
         {
             if (request is null || string.IsNullOrEmpty(request.Data))
                 return Results.Problem(statusCode: StatusCodes.Status400BadRequest);
 
-            store.SetLeft(id, request.Data);
+            byte[] leftBytes;
+
+            try
+            {
+                leftBytes = Convert.FromBase64String(request.Data);
+            }
+            catch (FormatException)
+            {
+                return Results.Problem(statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            store.SetLeft(id, leftBytes);
             return Results.Created($"/v1/diff/{id}/left", null);
         })
             .WithName("PutLeft")
@@ -25,12 +36,23 @@ public static class ApplicationEndpoints
             .WithSummary("Upload left payload")
             .WithDescription("Stores the Base64 encoded left payload for the given id.");
 
-        diffGroup.MapPut("/{id}/right", (string id, DiffRequest? request, DiffContentStore store) =>
+        diffGroup.MapPut("/{id}/right", (string id, DiffRequest request, DiffContentStore store) =>
         {
             if (request is null || string.IsNullOrEmpty(request.Data))
                 return Results.Problem(statusCode: StatusCodes.Status400BadRequest);
 
-            store.SetRight(id, request.Data);
+            byte[] rightBytes;
+
+            try
+            {
+                rightBytes = Convert.FromBase64String(request.Data);
+            }
+            catch (FormatException)
+            {
+                return Results.Problem(statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            store.SetRight(id, rightBytes);
             return Results.Created($"/v1/diff/{id}/right", null);
         })
             .WithName("PutRight")
@@ -45,8 +67,8 @@ public static class ApplicationEndpoints
             if (!store.TryGet(id, out var entry) || entry?.Left is null || entry.Right is null)
                 return Results.NotFound();
 
-            var leftBytes = Convert.FromBase64String(entry.Left);
-            var rightBytes = Convert.FromBase64String(entry.Right);
+            var leftBytes = entry.Left;
+            var rightBytes = entry.Right;
 
             if (leftBytes.SequenceEqual(rightBytes))
                 return Results.Ok(new { diffResultType = "Equals" });

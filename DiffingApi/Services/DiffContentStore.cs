@@ -7,7 +7,7 @@ public sealed class DiffContentStore
 {
     private readonly ConcurrentDictionary<string, DiffEntry> _entries = new();
 
-    public void SetLeft(string id, string data)
+    public void SetLeft(string id, byte[] data)
     {
         _entries.AddOrUpdate(
             id,
@@ -19,7 +19,7 @@ public sealed class DiffContentStore
             });
     }
 
-    public void SetRight(string id, string data)
+    public void SetRight(string id, byte[] data)
     {
         _entries.AddOrUpdate(
             id,
