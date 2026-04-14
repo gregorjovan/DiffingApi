@@ -10,8 +10,11 @@ public static class ApplicationEndpoints
         var diffGroup = app.MapGroup("/v1/diff")
             .WithTags("DiffingApi"); ;
 
-        app.MapPut("/{id}/left", (string id, DiffRequest request, DiffContentStore store) =>
+        diffGroup.MapPut("/{id}/left", (string id, DiffRequest? request, DiffContentStore store) =>
         {
+            if (request is null || string.IsNullOrEmpty(request.Data))
+                return Results.Problem(statusCode: StatusCodes.Status400BadRequest);
+
             store.SetLeft(id, request.Data);
             return Results.Created($"/v1/diff/{id}/left", null);
         })
@@ -22,8 +25,11 @@ public static class ApplicationEndpoints
             .WithSummary("Upload left payload")
             .WithDescription("Stores the Base64 encoded left payload for the given id.");
 
-        app.MapPut("/{id}/right", (string id, DiffRequest request, DiffContentStore store) =>
+        diffGroup.MapPut("/{id}/right", (string id, DiffRequest? request, DiffContentStore store) =>
         {
+            if (request is null || string.IsNullOrEmpty(request.Data))
+                return Results.Problem(statusCode: StatusCodes.Status400BadRequest);
+
             store.SetRight(id, request.Data);
             return Results.Created($"/v1/diff/{id}/right", null);
         })
@@ -34,7 +40,7 @@ public static class ApplicationEndpoints
             .WithSummary("Upload right payload")
             .WithDescription("Stores the Base64 encoded right payload for the given id.");
 
-        app.MapGet("/{id}", (string id, DiffContentStore store) =>
+        diffGroup.MapGet("/{id}", (string id, DiffContentStore store) =>
         {
             if (!store.TryGet(id, out var entry) || entry?.Left is null || entry.Right is null)
                 return Results.NotFound();
