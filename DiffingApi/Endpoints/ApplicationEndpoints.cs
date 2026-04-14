@@ -16,8 +16,9 @@ public static class ApplicationEndpoints
             return Results.Created($"/v1/diff/{id}/left", null);
         })
             .WithName("PutLeft")
-            .WithTags("PutLeft");
-
+            .WithTags("PutLeft")
+            .Produces(StatusCodes.Status201Created)
+            .ProducesProblem(StatusCodes.Status400BadRequest);
 
         app.MapPut("/{id}/right", (string id, DiffRequest request, DiffContentStore store) =>
         {
@@ -25,7 +26,9 @@ public static class ApplicationEndpoints
             return Results.Created($"/v1/diff/{id}/right", null);
         })
             .WithName("PutRight")
-            .WithTags("PutRight");
+            .WithTags("PutRight")
+            .Produces(StatusCodes.Status201Created)
+            .ProducesProblem(StatusCodes.Status400BadRequest);
 
         app.MapGet("/{id}", (string id, DiffContentStore store) =>
         {
@@ -46,6 +49,8 @@ public static class ApplicationEndpoints
             return Results.Ok(new { diffResultType = "ContentDoNotMatch", diffs });
         })
             .WithName("GetDiff")
-            .WithTags("GetDiff");
+            .WithTags("GetDiff")
+            .Produces(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }
