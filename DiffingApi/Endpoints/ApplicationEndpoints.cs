@@ -7,19 +7,21 @@ public static class ApplicationEndpoints
 {
     public static void MapApplicationEndpoints(this WebApplication app)
     {
-        app.MapPut("/v1/diff/{id}/left", (string id, DiffRequest request, DiffContentStore store) =>
+        var diffGroup = app.MapGroup("/v1/diff");
+
+        app.MapPut("/{id}/left", (string id, DiffRequest request, DiffContentStore store) =>
         {
             store.SetLeft(id, request.Data);
             return Results.Created($"/v1/diff/{id}/left", null);
         });
 
-        app.MapPut("/v1/diff/{id}/right", (string id, DiffRequest request, DiffContentStore store) =>
+        app.MapPut("/{id}/right", (string id, DiffRequest request, DiffContentStore store) =>
         {
             store.SetRight(id, request.Data);
             return Results.Created($"/v1/diff/{id}/right", null);
         });
 
-        app.MapGet("/v1/diff/{id}", (string id, DiffContentStore store) =>
+        app.MapGet("/{id}", (string id, DiffContentStore store) =>
         {
             if (!store.TryGet(id, out var entry) || entry?.Left is null || entry.Right is null)
                 return Results.NotFound();
