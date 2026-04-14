@@ -68,12 +68,42 @@ public sealed class DiffEndpointTests(WebApplicationFactory<Program> factory) : 
     }
 
     [Fact]
+    public async Task Get_WhenBothSidesExistAndDifferByOneByte_ReturnsSingleDiffRange()
+    {
+        var id = CreateUniqueId();
+
+        var leftResponse = await PutLeftAsync(id, "AAAA");
+        var rightResponse = await PutRightAsync(id, "AAEA");
+        var getResponse = await _client.GetAsync($"/v1/diff/{id}");
+
+        Assert.Equal(HttpStatusCode.Created, leftResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, rightResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+        using var responseJson = JsonDocument.Parse(await getResponse.Content.ReadAsStringAsync());
+
+        Assert.Equal(
+            "ContentDoNotMatch",
+            responseJson.RootElement.GetProperty("diffResultType").GetString());
+
+        var diffs = responseJson.RootElement.GetProperty("diffs");
+
+        Assert.Equal(JsonValueKind.Array, diffs.ValueKind);
+        Assert.Equal(1, diffs.GetArrayLength());
+        Assert.Equal(1, diffs[0].GetProperty("offset").GetInt32());
+        Assert.Equal(1, diffs[0].GetProperty("length").GetInt32());
+    }
+
+    [Fact]
     public async Task Get_WhenBothSidesExistSameLengthButContentDiffers_ReturnsContentDoNotMatch()
     {
         var id = CreateUniqueId();
 
-        await PutLeftAsync(id, "AAAA");   // base64 -> 0000
-        await PutRightAsync(id, "AAAB");  // base64 -> 0001
+        var leftResponse = await PutLeftAsync(id, "AAAA");
+        var rightResponse = await PutRightAsync(id, "AAAB");
+
+        Assert.Equal(HttpStatusCode.Created, leftResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, rightResponse.StatusCode);
 
         var response = await _client.GetAsync($"/v1/diff/{id}");
 
