@@ -7,19 +7,25 @@ public static class ApplicationEndpoints
 {
     public static void MapApplicationEndpoints(this WebApplication app)
     {
-        var diffGroup = app.MapGroup("/v1/diff");
+        var diffGroup = app.MapGroup("/v1/diff")
+            .WithTags("DiffingApi"); ;
 
         app.MapPut("/{id}/left", (string id, DiffRequest request, DiffContentStore store) =>
         {
             store.SetLeft(id, request.Data);
             return Results.Created($"/v1/diff/{id}/left", null);
-        });
+        })
+            .WithName("PutLeft")
+            .WithTags("PutLeft");
+
 
         app.MapPut("/{id}/right", (string id, DiffRequest request, DiffContentStore store) =>
         {
             store.SetRight(id, request.Data);
             return Results.Created($"/v1/diff/{id}/right", null);
-        });
+        })
+            .WithName("PutRight")
+            .WithTags("PutRight");
 
         app.MapGet("/{id}", (string id, DiffContentStore store) =>
         {
@@ -38,6 +44,8 @@ public static class ApplicationEndpoints
             var diffs = DiffCalculator.FindDiffs(leftBytes, rightBytes);
 
             return Results.Ok(new { diffResultType = "ContentDoNotMatch", diffs });
-        });
+        })
+            .WithName("GetDiff")
+            .WithTags("GetDiff");
     }
 }
