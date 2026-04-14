@@ -127,3 +127,14 @@ If the request body is missing, `data` is null or empty, or `data` is not valid 
   Covers the API behavior end-to-end.
 - `DiffingApi.UnitTests`
   Covers the internal diff range calculation logic.
+
+## Continuous Integration
+
+The repository includes a GitHub Actions workflow at `.github/workflows/ci.yml`.
+
+It runs on pushes and pull requests targeting `main` and `master`, and performs:
+
+- dependency restore
+- solution build
+- unit test execution
+- integration test execution

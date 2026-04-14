@@ -68,6 +68,8 @@ dotnet test DiffingApi.UnitTests/DiffingApi.UnitTests.csproj
 
 If a transient Windows file lock blocks a test run, retry the command once before assuming the code is broken.
 
+The repository also includes a GitHub Actions workflow at `.github/workflows/ci.yml` that restores, builds, and runs both test projects on pushes and pull requests targeting `main` and `master`.
+
 ## Documentation Expectations
 
 - Keep README examples and assumptions in English.
