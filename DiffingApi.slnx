@@ -2,9 +2,8 @@
   <Folder Name="/Solution Items/">
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
-    <File Path="Diffing API Task.pdf" />
-    <File Path="Diffing API Task.txt" />
     <File Path="README.md" />
+    <File Path="task.txt" />
   </Folder>
   <Project Path="DiffingApi.IntegrationTests/DiffingApi.IntegrationTests.csproj" />
   <Project Path="DiffingApi.UnitTests/DiffingApi.UnitTests.csproj" />

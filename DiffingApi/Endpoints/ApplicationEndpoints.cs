@@ -3,14 +3,20 @@ using DiffingApi.Services;
 
 namespace DiffingApi.Endpoints;
 
+/// <summary>
+/// Registers the diff API endpoints.
+/// </summary>
 public static class ApplicationEndpoints
 {
+    /// <summary>
+    /// Maps the diff API endpoints under <c>/v1/diff</c>.
+    /// </summary>
     public static void MapApplicationEndpoints(this WebApplication app)
     {
         var diffGroup = app.MapGroup("/v1/diff")
             .WithTags("DiffingApi"); ;
 
-        diffGroup.MapPut("/{id}/left", (string id, DiffRequest request, DiffContentStore store) =>
+        diffGroup.MapPut("/{id}/left", (string id, DiffRequest? request, DiffContentStore store) =>
         {
             if (request is null || string.IsNullOrEmpty(request.Data))
                 return Results.Problem(statusCode: StatusCodes.Status400BadRequest);
@@ -36,7 +42,7 @@ public static class ApplicationEndpoints
             .WithSummary("Upload left payload")
             .WithDescription("Stores the Base64 encoded left payload for the given id.");
 
-        diffGroup.MapPut("/{id}/right", (string id, DiffRequest request, DiffContentStore store) =>
+        diffGroup.MapPut("/{id}/right", (string id, DiffRequest? request, DiffContentStore store) =>
         {
             if (request is null || string.IsNullOrEmpty(request.Data))
                 return Results.Problem(statusCode: StatusCodes.Status400BadRequest);
