@@ -1,10 +1,12 @@
 namespace DiffingApi.Services;
 
+public sealed record DiffRange(int Offset, int Length);
+
 public static class DiffCalculator
 {
-    public static List<object> FindDiffs(byte[] leftBytes, byte[] rightBytes)
+    public static List<DiffRange> FindDiffs(ReadOnlySpan<byte> leftBytes, ReadOnlySpan<byte> rightBytes)
     {
-        var diffs = new List<object>();
+        var diffs = new List<DiffRange>();
         int? currentOffset = null;
 
         for (var index = 0; index < leftBytes.Length; index++)
@@ -20,22 +22,18 @@ public static class DiffCalculator
                 continue;
             }
 
-            diffs.Add(new
-            {
-                offset = currentOffset.Value,
-                length = index - currentOffset.Value
-            });
+            diffs.Add(new DiffRange(
+                currentOffset.Value,
+                index - currentOffset.Value));
 
             currentOffset = null;
         }
 
         if (currentOffset is not null)
         {
-            diffs.Add(new
-            {
-                offset = currentOffset.Value,
-                length = leftBytes.Length - currentOffset.Value
-            });
+            diffs.Add(new DiffRange(
+                currentOffset.Value,
+                leftBytes.Length - currentOffset.Value));
         }
 
         return diffs;
