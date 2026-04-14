@@ -108,10 +108,18 @@ If the request body is missing, `data` is null or empty, or `data` is not valid 
   This keeps comparison requests simple and avoids decoding the same payload repeatedly.
 - The API stores only the latest uploaded left and right payload for a given `{id}`.
   Uploading the same side again replaces the previous value.
+- Requests may arrive in any order.
+  The API compares whatever left and right payloads are currently stored for the given `{id}`.
+- If the same side is uploaded multiple times, the latest successfully stored value is used.
+  In other words, the implementation follows a last-write-wins approach per side.
+- Validation is intentionally implemented inline inside the endpoint handlers.
+  For the current assignment scope, introducing a separate validation library such as FluentValidation would add unnecessary abstraction.
 - The diff algorithm is intentionally simple and returns contiguous mismatch ranges.
   It does not attempt to calculate an optimal edit script.
 - Actual differing bytes are not returned because the assignment only requires offsets and lengths.
 - Invalid Base64 is treated as a bad request and returns `400 Bad Request`.
+- Payload size limits and eviction policies were intentionally not added.
+  Because the assignment uses an in-memory store and does not require production-scale persistence or retention controls, adding those mechanisms would introduce extra complexity beyond the current scope.
 
 ## Test Projects
 

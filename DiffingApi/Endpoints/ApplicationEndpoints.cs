@@ -14,7 +14,7 @@ public static class ApplicationEndpoints
     public static void MapApplicationEndpoints(this WebApplication app)
     {
         var diffGroup = app.MapGroup("/v1/diff")
-            .WithTags("DiffingApi"); ;
+            .WithTags("DiffingApi");
 
         diffGroup.MapPut("/{id}/left", (string id, DiffRequest? request, DiffContentStore store) =>
         {

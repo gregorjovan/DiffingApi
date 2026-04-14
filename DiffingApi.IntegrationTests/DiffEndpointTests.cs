@@ -75,6 +75,16 @@ public sealed class DiffEndpointTests(WebApplicationFactory<Program> factory) : 
     }
 
     [Fact]
+    public async Task PutRight_WhenDataIsNull_ReturnsBadRequest()
+    {
+        var id = CreateUniqueId();
+
+        var response = await PutRightRawAsync(id, """{"data":null}""");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task PutRight_WhenDataIsInvalidBase64_ReturnsBadRequest()
     {
         var id = CreateUniqueId();
@@ -187,6 +197,13 @@ public sealed class DiffEndpointTests(WebApplicationFactory<Program> factory) : 
     {
         return _client.PutAsync(
             $"/v1/diff/{id}/left",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+    }
+
+    private Task<HttpResponseMessage> PutRightRawAsync(string id, string json)
+    {
+        return _client.PutAsync(
+            $"/v1/diff/{id}/right",
             new StringContent(json, Encoding.UTF8, "application/json"));
     }
 
