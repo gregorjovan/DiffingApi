@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DiffingApi.Advanced.Application\DiffingApi.Advanced.Application.csproj" />
+    <ProjectReference Include="..\DiffingApi.Advanced.Infrastructure\DiffingApi.Advanced.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

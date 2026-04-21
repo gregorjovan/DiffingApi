@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
     <ProjectReference Include="..\DiffingApi.Advanced.Application\DiffingApi.Advanced.Application.csproj" />
     <ProjectReference Include="..\DiffingApi.Advanced.Domain\DiffingApi.Advanced.Domain.csproj" />
   </ItemGroup>

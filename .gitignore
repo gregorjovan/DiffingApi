@@ -6,6 +6,7 @@
 # special
 *.pdf
 *.txt
+*.db
 
 # User-specific files
 *.rsuser

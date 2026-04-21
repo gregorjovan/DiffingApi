@@ -1,13 +1,14 @@
 using DiffingApi.Advanced.Api.Endpoints;
-using DiffingApi.Advanced.Application.Abstractions;
-using DiffingApi.Advanced.Application.Services;
+using DiffingApi.Advanced.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
-builder.Services.AddSingleton<IDiffContentStore, InMemoryDiffContentStore>();
+builder.Services.AddInfrastructure(builder.Configuration, builder.Environment.ContentRootPath);
 
 var app = builder.Build();
+
+app.Services.InitializeInfrastructure();
 
 if (app.Environment.IsDevelopment())
 {
