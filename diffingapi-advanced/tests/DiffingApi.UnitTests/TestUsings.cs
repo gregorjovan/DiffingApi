@@ -1,2 +1,2 @@
-global using DiffingApi.Services;
-global using DiffingApi.Models;
+global using DiffingApi.Advanced.Application.Services;
+global using DiffingApi.Advanced.Domain.Models;

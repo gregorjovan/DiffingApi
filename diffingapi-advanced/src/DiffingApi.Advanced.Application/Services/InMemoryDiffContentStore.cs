@@ -1,12 +1,13 @@
 using System.Collections.Concurrent;
-using DiffingApi.Models;
+using DiffingApi.Advanced.Application.Abstractions;
+using DiffingApi.Advanced.Domain.Models;
 
-namespace DiffingApi.Services;
+namespace DiffingApi.Advanced.Application.Services;
 
 /// <summary>
 /// In-memory storage for uploaded diff payloads.
 /// </summary>
-public sealed class DiffContentStore
+public sealed class InMemoryDiffContentStore : IDiffContentStore
 {
     private readonly ConcurrentDictionary<string, DiffEntry> _entries = new();
 

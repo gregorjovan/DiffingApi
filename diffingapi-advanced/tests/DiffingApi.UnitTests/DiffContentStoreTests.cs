@@ -5,7 +5,7 @@ public class DiffContentStoreTests
     [Fact]
     public void SetLeft_WhenEntryDoesNotExist_CreatesEntryWithLeftPayload()
     {
-        var store = new DiffContentStore();
+        var store = new InMemoryDiffContentStore();
         var left = new byte[] { 1, 2, 3 };
 
         store.SetLeft("id", left);
@@ -21,7 +21,7 @@ public class DiffContentStoreTests
     [Fact]
     public void SetRight_WhenLeftAlreadyExists_PreservesLeftPayload()
     {
-        var store = new DiffContentStore();
+        var store = new InMemoryDiffContentStore();
         var left = new byte[] { 1, 2, 3 };
         var right = new byte[] { 4, 5, 6 };
 
@@ -39,7 +39,7 @@ public class DiffContentStoreTests
     [Fact]
     public void SetRight_WhenExistingEntryIsRead_DoesNotMutatePreviouslyReadSnapshot()
     {
-        var store = new DiffContentStore();
+        var store = new InMemoryDiffContentStore();
 
         store.SetLeft("id", new byte[] { 1, 2, 3 });
         store.TryGet("id", out var snapshot);

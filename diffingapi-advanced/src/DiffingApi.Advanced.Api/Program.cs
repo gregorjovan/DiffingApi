@@ -1,11 +1,11 @@
-using DiffingApi.Endpoints;
-using DiffingApi.Services;
+using DiffingApi.Advanced.Api.Endpoints;
+using DiffingApi.Advanced.Application.Abstractions;
+using DiffingApi.Advanced.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<DiffContentStore>();
-
 builder.Services.AddOpenApi();
+builder.Services.AddSingleton<IDiffContentStore, InMemoryDiffContentStore>();
 
 var app = builder.Build();
 

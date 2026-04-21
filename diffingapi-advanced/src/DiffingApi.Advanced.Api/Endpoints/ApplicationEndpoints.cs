@@ -1,7 +1,8 @@
-﻿using DiffingApi.Contracts;
-using DiffingApi.Services;
+using DiffingApi.Advanced.Api.Contracts;
+using DiffingApi.Advanced.Application.Abstractions;
+using DiffingApi.Advanced.Application.Services;
 
-namespace DiffingApi.Endpoints;
+namespace DiffingApi.Advanced.Api.Endpoints;
 
 /// <summary>
 /// Registers the diff API endpoints.
@@ -16,7 +17,7 @@ public static class ApplicationEndpoints
         var diffGroup = app.MapGroup("/v1/diff")
             .WithTags("DiffingApi");
 
-        diffGroup.MapPut("/{id}/left", (string id, DiffRequest? request, DiffContentStore store) =>
+        diffGroup.MapPut("/{id}/left", (string id, DiffRequest? request, IDiffContentStore store) =>
         {
             if (request is null || string.IsNullOrEmpty(request.Data))
                 return Results.Problem(statusCode: StatusCodes.Status400BadRequest);
@@ -42,7 +43,7 @@ public static class ApplicationEndpoints
             .WithSummary("Upload left payload")
             .WithDescription("Stores the Base64 encoded left payload for the given id.");
 
-        diffGroup.MapPut("/{id}/right", (string id, DiffRequest? request, DiffContentStore store) =>
+        diffGroup.MapPut("/{id}/right", (string id, DiffRequest? request, IDiffContentStore store) =>
         {
             if (request is null || string.IsNullOrEmpty(request.Data))
                 return Results.Problem(statusCode: StatusCodes.Status400BadRequest);
@@ -68,7 +69,7 @@ public static class ApplicationEndpoints
             .WithSummary("Upload right payload")
             .WithDescription("Stores the Base64 encoded right payload for the given id.");
 
-        diffGroup.MapGet("/{id}", (string id, DiffContentStore store) =>
+        diffGroup.MapGet("/{id}", (string id, IDiffContentStore store) =>
         {
             if (!store.TryGet(id, out var entry) || entry?.Left is null || entry.Right is null)
                 return Results.NotFound();

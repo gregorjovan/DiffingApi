@@ -1,4 +1,4 @@
-namespace DiffingApi.Services;
+namespace DiffingApi.Advanced.Application.Services;
 
 /// <summary>
 /// Represents a contiguous byte range where two payloads differ.

@@ -7,7 +7,10 @@
     <File Path="../README.md" />
     <File Path="../task.txt" />
   </Folder>
+  <Project Path="src/DiffingApi.Advanced.Api/DiffingApi.Advanced.Api.csproj" />
+  <Project Path="src/DiffingApi.Advanced.Application/DiffingApi.Advanced.Application.csproj" />
+  <Project Path="src/DiffingApi.Advanced.Domain/DiffingApi.Advanced.Domain.csproj" />
+  <Project Path="src/DiffingApi.Advanced.Infrastructure/DiffingApi.Advanced.Infrastructure.csproj" />
   <Project Path="tests/DiffingApi.IntegrationTests/DiffingApi.IntegrationTests.csproj" />
   <Project Path="tests/DiffingApi.UnitTests/DiffingApi.UnitTests.csproj" />
-  <Project Path="src/DiffingApi/DiffingApi.Advanced.csproj" />
 </Solution>
