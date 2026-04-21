@@ -9,5 +9,5 @@
   </Folder>
   <Project Path="tests/DiffingApi.IntegrationTests/DiffingApi.IntegrationTests.csproj" />
   <Project Path="tests/DiffingApi.UnitTests/DiffingApi.UnitTests.csproj" />
-  <Project Path="src/DiffingApi/DiffingApi.csproj" />
+  <Project Path="src/DiffingApi/DiffingApi.Basic.csproj" />
 </Solution>
