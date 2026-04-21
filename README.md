@@ -2,6 +2,13 @@
 
 REST API for comparing Base64-encoded binary data and returning high-level diff information.
 
+This repository contains two variants of the solution:
+
+- `diffingapi-basic`
+  A straightforward in-memory implementation.
+- `diffingapi-advanced`
+  A layered implementation with SQLite persistence, caching, and keyed in-process locking.
+
 ## Requirements Covered
 
 - `PUT /v1/diff/{id}/left`
@@ -13,13 +20,37 @@ REST API for comparing Base64-encoded binary data and returning high-level diff 
 - integration tests for endpoint behavior
 - unit tests for the internal diff calculation logic
 
-## Running the Application
+## Repository Layout
+
+- `diffingapi-basic`
+  Basic solution with:
+  - `src/DiffingApi`
+  - `tests/DiffingApi.UnitTests`
+  - `tests/DiffingApi.IntegrationTests`
+- `diffingapi-advanced`
+  Advanced solution with:
+  - `src/DiffingApi.Advanced.Api`
+  - `src/DiffingApi.Advanced.Application`
+  - `src/DiffingApi.Advanced.Domain`
+  - `src/DiffingApi.Advanced.Infrastructure`
+  - `tests/DiffingApi.UnitTests`
+  - `tests/DiffingApi.IntegrationTests`
+
+## Running the Applications
+
+### Basic solution
 
 ```bash
-dotnet run --project diffingapi-basic/src/DiffingApi/DiffingApi.csproj
+dotnet run --project diffingapi-basic/src/DiffingApi/DiffingApi.Basic.csproj
 ```
 
-By default, the API is available on the local ASP.NET Core development URL shown in the console output.
+### Advanced solution
+
+```bash
+dotnet run --project diffingapi-advanced/src/DiffingApi.Advanced.Api/DiffingApi.Advanced.Api.csproj
+```
+
+By default, each application is available on the local ASP.NET Core development URL shown in the console output.
 
 Swagger UI is available at:
 
@@ -121,18 +152,44 @@ If the request body is missing, `data` is null or empty, or `data` is not valid 
 - Payload size limits and eviction policies were intentionally not added.
   Because the assignment uses an in-memory store and does not require production-scale persistence or retention controls, adding those mechanisms would introduce extra complexity beyond the current scope.
 
-## Test Projects
+## Building and Testing
 
-- `DiffingApi.IntegrationTests`
-  Covers the API behavior end-to-end.
-- `DiffingApi.UnitTests`
-  Covers the internal diff range calculation logic.
+### Build basic
 
-The current repository layout keeps the basic implementation under `diffingapi-basic/`, with:
+```bash
+dotnet build diffingapi-basic/DiffingApi.Basic.slnx --configuration Release
+```
 
-- `diffingapi-basic/src/DiffingApi`
+### Build advanced
+
+```bash
+dotnet build diffingapi-advanced/DiffingApi.Advanced.slnx --configuration Release
+```
+
+### Test basic
+
+```bash
+dotnet test diffingapi-basic/tests/DiffingApi.UnitTests/DiffingApi.UnitTests.csproj --configuration Release
+dotnet test diffingapi-basic/tests/DiffingApi.IntegrationTests/DiffingApi.IntegrationTests.csproj --configuration Release
+```
+
+### Test advanced
+
+```bash
+dotnet test diffingapi-advanced/tests/DiffingApi.UnitTests/DiffingApi.UnitTests.csproj --configuration Release
+dotnet test diffingapi-advanced/tests/DiffingApi.IntegrationTests/DiffingApi.IntegrationTests.csproj --configuration Release
+```
+
+### Test projects
+
 - `diffingapi-basic/tests/DiffingApi.UnitTests`
+  Covers the internal diff range calculation logic for the basic solution.
 - `diffingapi-basic/tests/DiffingApi.IntegrationTests`
+  Covers the basic API behavior end-to-end.
+- `diffingapi-advanced/tests/DiffingApi.UnitTests`
+  Covers the internal diff logic, locking, and service behavior for the advanced solution.
+- `diffingapi-advanced/tests/DiffingApi.IntegrationTests`
+  Covers the advanced API behavior end-to-end.
 
 ## Continuous Integration
 
@@ -141,6 +198,5 @@ The repository includes a GitHub Actions workflow at `.github/workflows/ci.yml`.
 It runs on pushes and pull requests targeting `main` and `master`, and performs:
 
 - dependency restore
-- solution build
-- unit test execution
-- integration test execution
+- basic solution build and test execution
+- advanced solution build and test execution
