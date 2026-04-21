@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DiffingApi\DiffingApi.csproj" />
+    <ProjectReference Include="..\..\src\DiffingApi\DiffingApi.Advanced.csproj" />
   </ItemGroup>
 
 </Project>

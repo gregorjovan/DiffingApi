@@ -25,14 +25,26 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Restore dependencies
-        run: dotnet restore
+      - name: Restore basic solution
+        run: dotnet restore diffingapi-basic/DiffingApi.Basic.slnx
 
-      - name: Build solution
-        run: dotnet build --no-restore --configuration Release
+      - name: Build basic solution
+        run: dotnet build diffingapi-basic/DiffingApi.Basic.slnx --no-restore --configuration Release
 
-      - name: Run unit tests
-        run: dotnet test DiffingApi.UnitTests/DiffingApi.UnitTests.csproj --no-build --configuration Release
+      - name: Run basic unit tests
+        run: dotnet test diffingapi-basic/tests/DiffingApi.UnitTests/DiffingApi.UnitTests.csproj --no-build --configuration Release
 
-      - name: Run integration tests
-        run: dotnet test DiffingApi.IntegrationTests/DiffingApi.IntegrationTests.csproj --no-build --configuration Release
+      - name: Run basic integration tests
+        run: dotnet test diffingapi-basic/tests/DiffingApi.IntegrationTests/DiffingApi.IntegrationTests.csproj --no-build --configuration Release
+
+      - name: Restore advanced solution
+        run: dotnet restore diffingapi-advanced/DiffingApi.Advanced.slnx
+
+      - name: Build advanced solution
+        run: dotnet build diffingapi-advanced/DiffingApi.Advanced.slnx --no-restore --configuration Release
+
+      - name: Run advanced unit tests
+        run: dotnet test diffingapi-advanced/tests/DiffingApi.UnitTests/DiffingApi.UnitTests.csproj --no-build --configuration Release
+
+      - name: Run advanced integration tests
+        run: dotnet test diffingapi-advanced/tests/DiffingApi.IntegrationTests/DiffingApi.IntegrationTests.csproj --no-build --configuration Release

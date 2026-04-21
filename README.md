@@ -16,7 +16,7 @@ REST API for comparing Base64-encoded binary data and returning high-level diff 
 ## Running the Application
 
 ```bash
-dotnet run --project DiffingApi/DiffingApi.csproj
+dotnet run --project diffingapi-basic/src/DiffingApi/DiffingApi.csproj
 ```
 
 By default, the API is available on the local ASP.NET Core development URL shown in the console output.
@@ -127,6 +127,12 @@ If the request body is missing, `data` is null or empty, or `data` is not valid 
   Covers the API behavior end-to-end.
 - `DiffingApi.UnitTests`
   Covers the internal diff range calculation logic.
+
+The current repository layout keeps the basic implementation under `diffingapi-basic/`, with:
+
+- `diffingapi-basic/src/DiffingApi`
+- `diffingapi-basic/tests/DiffingApi.UnitTests`
+- `diffingapi-basic/tests/DiffingApi.IntegrationTests`
 
 ## Continuous Integration
 
