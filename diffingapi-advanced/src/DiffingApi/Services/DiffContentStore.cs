@@ -17,12 +17,8 @@ public sealed class DiffContentStore
     {
         _entries.AddOrUpdate(
             id,
-            _ => new DiffEntry { Left = data },
-            (_, existing) =>
-            {
-                existing.Left = data;
-                return existing;
-            });
+            _ => new DiffEntry(Left: data),
+            (_, existing) => existing with { Left = data });
     }
 
     /// <summary>
@@ -32,12 +28,8 @@ public sealed class DiffContentStore
     {
         _entries.AddOrUpdate(
             id,
-            _ => new DiffEntry { Right = data },
-            (_, existing) =>
-            {
-                existing.Right = data;
-                return existing;
-            });
+            _ => new DiffEntry(Right: data),
+            (_, existing) => existing with { Right = data });
     }
 
     /// <summary>
