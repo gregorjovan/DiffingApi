@@ -1,6 +1,4 @@
-using DiffingApi.Advanced.Application.Abstractions;
 using DiffingApi.Advanced.Infrastructure.Persistence;
-using DiffingApi.Advanced.Infrastructure.Services;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -19,10 +17,8 @@ public static class ServiceCollectionExtensions
             configuration.GetConnectionString("DiffingDatabase"),
             contentRootPath);
 
-        services.AddDbContextFactory<DiffingAdvancedDbContext>(options =>
+        services.AddDbContext<DiffDbContext>(options =>
             options.UseSqlite(connectionString));
-
-        services.AddSingleton<IDiffContentStore, SqliteDiffContentStore>();
 
         return services;
     }

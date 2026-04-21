@@ -1,6 +1,6 @@
 using DiffingApi.Advanced.Api.Contracts;
 using DiffingApi.Advanced.Application.Abstractions;
-using DiffingApi.Advanced.Application.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace DiffingApi.Advanced.Api.Endpoints;
 
@@ -17,7 +17,7 @@ public static class ApplicationEndpoints
         var diffGroup = app.MapGroup("/v1/diff")
             .WithTags("DiffingApi");
 
-        diffGroup.MapPut("/{id}/left", (string id, DiffRequest? request, IDiffContentStore store) =>
+        diffGroup.MapPut("/{id}/left", async (string id, [FromBody] DiffRequest request, IDiffService store) =>
         {
             if (request is null || string.IsNullOrEmpty(request.Data))
                 return Results.Problem(statusCode: StatusCodes.Status400BadRequest);
@@ -33,9 +33,10 @@ public static class ApplicationEndpoints
                 return Results.Problem(statusCode: StatusCodes.Status400BadRequest);
             }
 
-            store.SetLeft(id, leftBytes);
+            await store.SaveLeftAsync(id, leftBytes);
             return Results.Created($"/v1/diff/{id}/left", null);
         })
+            .Accepts<DiffRequest>("application/json")
             .WithName("PutLeft")
             .WithTags("PutLeft")
             .Produces(StatusCodes.Status201Created)
@@ -43,7 +44,8 @@ public static class ApplicationEndpoints
             .WithSummary("Upload left payload")
             .WithDescription("Stores the Base64 encoded left payload for the given id.");
 
-        diffGroup.MapPut("/{id}/right", (string id, DiffRequest? request, IDiffContentStore store) =>
+
+        diffGroup.MapPut("/{id}/right", async (string id, [FromBody] DiffRequest request, IDiffService store) =>
         {
             if (request is null || string.IsNullOrEmpty(request.Data))
                 return Results.Problem(statusCode: StatusCodes.Status400BadRequest);
@@ -59,9 +61,10 @@ public static class ApplicationEndpoints
                 return Results.Problem(statusCode: StatusCodes.Status400BadRequest);
             }
 
-            store.SetRight(id, rightBytes);
+            await store.SaveRightAsync(id, rightBytes);
             return Results.Created($"/v1/diff/{id}/right", null);
         })
+            .Accepts<DiffRequest>("application/json")
             .WithName("PutRight")
             .WithTags("PutRight")
             .Produces(StatusCodes.Status201Created)
@@ -69,23 +72,16 @@ public static class ApplicationEndpoints
             .WithSummary("Upload right payload")
             .WithDescription("Stores the Base64 encoded right payload for the given id.");
 
-        diffGroup.MapGet("/{id}", (string id, IDiffContentStore store) =>
+        diffGroup.MapGet("/{id}", async (string id, IDiffService store) =>
         {
-            if (!store.TryGet(id, out var entry) || entry?.Left is null || entry.Right is null)
+            var result = await store.GetDiffAsync(id);
+
+            if (result is null)
+            {
                 return Results.NotFound();
+            }
 
-            var leftBytes = entry.Left;
-            var rightBytes = entry.Right;
-
-            if (leftBytes.SequenceEqual(rightBytes))
-                return Results.Ok(new { diffResultType = "Equals" });
-
-            if (leftBytes.Length != rightBytes.Length)
-                return Results.Ok(new { diffResultType = "SizeDoNotMatch" });
-
-            var diffs = DiffCalculator.FindDiffs(leftBytes, rightBytes);
-
-            return Results.Ok(new { diffResultType = "ContentDoNotMatch", diffs });
+            return Results.Ok(result);
         })
             .WithName("GetDiff")
             .WithTags("GetDiff")
