@@ -1,4 +1,5 @@
-﻿using DiffingApi.Contracts;
+using DiffingApi.Basic.Services;
+using DiffingApi.Contracts;
 using DiffingApi.Services;
 
 namespace DiffingApi.Endpoints;
@@ -70,21 +71,11 @@ public static class ApplicationEndpoints
 
         diffGroup.MapGet("/{id}", (string id, DiffContentStore store) =>
         {
-            if (!store.TryGet(id, out var entry) || entry?.Left is null || entry.Right is null)
-                return Results.NotFound();
+            var result = store.GetDiffResult(id);
 
-            var leftBytes = entry.Left;
-            var rightBytes = entry.Right;
-
-            if (leftBytes.SequenceEqual(rightBytes))
-                return Results.Ok(new { diffResultType = "Equals" });
-
-            if (leftBytes.Length != rightBytes.Length)
-                return Results.Ok(new { diffResultType = "SizeDoNotMatch" });
-
-            var diffs = DiffCalculator.FindDiffs(leftBytes, rightBytes);
-
-            return Results.Ok(new { diffResultType = "ContentDoNotMatch", diffs });
+            return result is null
+                ? Results.NotFound()
+                : Results.Ok(result);
         })
             .WithName("GetDiff")
             .WithTags("GetDiff")

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DiffingApi.Advanced.Application\DiffingApi.Advanced.Application.csproj" />
+    <ProjectReference Include="..\DiffingApi.Advanced.Infrastructure\DiffingApi.Advanced.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

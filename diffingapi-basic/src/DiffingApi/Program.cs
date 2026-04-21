@@ -1,5 +1,5 @@
+using DiffingApi.Basic.Services;
 using DiffingApi.Endpoints;
-using DiffingApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
