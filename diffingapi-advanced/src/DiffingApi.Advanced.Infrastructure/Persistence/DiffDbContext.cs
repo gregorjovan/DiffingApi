@@ -28,6 +28,18 @@ public sealed class DiffDbContext : DbContext
 
             entity.Property(x => x.Right)
                 .HasColumnType("BLOB");
+
+            entity.Property(x => x.ProcessingStatus)
+                .HasMaxLength(32);
+
+            entity.Property(x => x.DiffResultType)
+                .HasMaxLength(32);
+
+            entity.Property(x => x.DiffsJson)
+                .HasColumnType("TEXT");
+
+            entity.Property(x => x.FailureReason)
+                .HasColumnType("TEXT");
         });
     }
 }

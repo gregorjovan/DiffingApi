@@ -20,8 +20,49 @@ public static class ApplicationBuilderExtensions
             var databaseCreator = dbContext.GetService<IRelationalDatabaseCreator>();
             databaseCreator.CreateTables();
         }
+        else
+        {
+            EnsureColumn(dbContext, "DiffPairs", "ProcessingStatus", "TEXT");
+            EnsureColumn(dbContext, "DiffPairs", "DiffResultType", "TEXT");
+            EnsureColumn(dbContext, "DiffPairs", "DiffsJson", "TEXT");
+            EnsureColumn(dbContext, "DiffPairs", "FailureReason", "TEXT");
+        }
 
         return services;
+    }
+
+    private static void EnsureColumn(
+        DiffDbContext dbContext,
+        string tableName,
+        string columnName,
+        string columnType)
+    {
+        if (ColumnExists(dbContext, tableName, columnName))
+        {
+            return;
+        }
+
+        var connection = dbContext.Database.GetDbConnection();
+        var shouldClose = connection.State != System.Data.ConnectionState.Open;
+
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = $"ALTER TABLE {tableName} ADD COLUMN {columnName} {columnType}";
+            command.ExecuteNonQuery();
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
     }
 
     private static bool TableExists(DiffDbContext dbContext, string tableName)
@@ -49,6 +90,42 @@ public static class ApplicationBuilderExtensions
             command.Parameters.Add(parameter);
 
             return Convert.ToInt32(command.ExecuteScalar()) > 0;
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
+    }
+
+    private static bool ColumnExists(DiffDbContext dbContext, string tableName, string columnName)
+    {
+        var connection = dbContext.Database.GetDbConnection();
+        var shouldClose = connection.State != System.Data.ConnectionState.Open;
+
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = $"PRAGMA table_info({tableName})";
+
+            using var reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                if (string.Equals(reader.GetString(1), columnName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
         finally
         {

@@ -44,7 +44,6 @@ public static class ApplicationEndpoints
             .WithSummary("Upload left payload")
             .WithDescription("Stores the Base64 encoded left payload for the given id.");
 
-
         diffGroup.MapPut("/{id}/right", async (string id, [FromBody] DiffRequest request, IDiffService store) =>
         {
             if (request is null || string.IsNullOrEmpty(request.Data))
@@ -95,6 +94,32 @@ public static class ApplicationEndpoints
             - Equals if payloads are identical
             - SizeDoNotMatch if payload sizes differ
             - ContentDoNotMatch if payloads differ but have equal length
+            """);
+
+        diffGroup.MapGet("/{id}/status", async (string id, IDiffService store) =>
+        {
+            var result = await store.GetDiffStatusAsync(id);
+
+            if (result is null)
+            {
+                return Results.NotFound();
+            }
+
+            return Results.Ok(result);
+        })
+            .WithName("GetDiffStatus")
+            .WithTags("GetDiffStatus")
+            .Produces(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .WithSummary("Poll background diff processing status")
+            .WithDescription("""
+            Returns the current background diff processing status for the specified id.
+
+            Returns:
+            - Pending if the job is queued
+            - Processing if the job is running
+            - Completed with diffResultType and diffs when the result is available
+            - Failed with reason if processing failed
             """);
     }
 }
