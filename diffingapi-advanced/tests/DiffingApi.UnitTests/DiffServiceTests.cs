@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Text.Json;
 using DiffingApi.Advanced.Application.Abstractions;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -77,11 +78,64 @@ public sealed class DiffServiceTests
             result.Diffs);
     }
 
+    [Fact]
+    public async Task GetDiffStatusAsync_WhenOnlyLeftExists_ReturnsNull()
+    {
+        using var cache = new MemoryCache(new MemoryCacheOptions());
+        var repository = new InMemoryDiffPairRepository();
+        var service = CreateService(repository, cache);
+
+        await service.SaveLeftAsync("id", new byte[] { 1, 2, 3 });
+
+        var result = await service.GetDiffStatusAsync("id");
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetDiffStatusAsync_WhenBothSidesExist_ReturnsPending()
+    {
+        using var cache = new MemoryCache(new MemoryCacheOptions());
+        var repository = new InMemoryDiffPairRepository();
+        var service = CreateService(repository, cache);
+
+        await service.SaveLeftAsync("id", new byte[] { 1, 2, 3 });
+        await service.SaveRightAsync("id", new byte[] { 1, 2, 3 });
+
+        var result = await service.GetDiffStatusAsync("id");
+
+        Assert.NotNull(result);
+        Assert.Equal("Pending", result!.Status);
+    }
+
+    [Fact]
+    public async Task GetDiffStatusAsync_WhenPersistedResultExists_ReturnsCompletedResult()
+    {
+        using var cache = new MemoryCache(new MemoryCacheOptions());
+        var repository = new InMemoryDiffPairRepository();
+        var service = CreateService(repository, cache);
+
+        await service.SaveLeftAsync("id", new byte[] { 1, 2, 3 });
+        await service.SaveRightAsync("id", new byte[] { 1, 9, 3 });
+        await repository.SaveDiffResultAsync(
+            "id",
+            new DiffResult(
+                "ContentDoNotMatch",
+                new[] { new DiffRangeResult(1, 1) }));
+
+        var result = await service.GetDiffStatusAsync("id");
+
+        Assert.NotNull(result);
+        Assert.Equal("Completed", result!.Status);
+        Assert.Equal("ContentDoNotMatch", result.DiffResultType);
+        Assert.Equal(new[] { new DiffRangeResult(1, 1) }, result.Diffs);
+    }
+
     private static DiffService CreateService(
         IDiffPairRepository repository,
         IMemoryCache cache)
     {
-        return new DiffService(repository, new DiffLockProvider(), cache);
+        return new DiffService(repository, new DiffLockProvider(), cache, new DiffJobQueue());
     }
 
     private sealed class InMemoryDiffPairRepository : IDiffPairRepository
@@ -130,6 +184,84 @@ public sealed class DiffServiceTests
                 });
 
             return Task.CompletedTask;
+        }
+
+        public Task MarkPendingAsync(string id, CancellationToken ct = default)
+        {
+            Update(id, entity =>
+            {
+                entity.ProcessingStatus = "Pending";
+                entity.DiffResultType = null;
+                entity.DiffsJson = null;
+                entity.FailureReason = null;
+            });
+
+            return Task.CompletedTask;
+        }
+
+        public Task MarkProcessingAsync(string id, CancellationToken ct = default)
+        {
+            Update(id, entity =>
+            {
+                entity.ProcessingStatus = "Processing";
+                entity.FailureReason = null;
+            });
+
+            return Task.CompletedTask;
+        }
+
+        public Task SaveDiffResultAsync(string id, DiffResult result, CancellationToken ct = default)
+        {
+            Update(id, entity =>
+            {
+                entity.ProcessingStatus = "Completed";
+                entity.DiffResultType = result.DiffResultType;
+                entity.DiffsJson = result.Diffs is null ? null : JsonSerializer.Serialize(result.Diffs);
+                entity.FailureReason = null;
+            });
+
+            return Task.CompletedTask;
+        }
+
+        public Task SaveDiffFailureAsync(string id, string reason, CancellationToken ct = default)
+        {
+            Update(id, entity =>
+            {
+                entity.ProcessingStatus = "Failed";
+                entity.DiffResultType = null;
+                entity.DiffsJson = null;
+                entity.FailureReason = reason;
+            });
+
+            return Task.CompletedTask;
+        }
+
+        private void Update(string id, Action<DiffPairEntity> update)
+        {
+            _entries.AddOrUpdate(
+                id,
+                _ =>
+                {
+                    var entity = new DiffPairEntity { Id = id };
+                    update(entity);
+                    return entity;
+                },
+                (_, existing) =>
+                {
+                    var entity = new DiffPairEntity
+                    {
+                        Id = existing.Id,
+                        Left = existing.Left,
+                        Right = existing.Right,
+                        ProcessingStatus = existing.ProcessingStatus,
+                        DiffResultType = existing.DiffResultType,
+                        DiffsJson = existing.DiffsJson,
+                        FailureReason = existing.FailureReason
+                    };
+
+                    update(entity);
+                    return entity;
+                });
         }
     }
 }

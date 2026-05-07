@@ -1,3 +1,4 @@
+using DiffingApi.Advanced.Api.BackgroundServices;
 using DiffingApi.Advanced.Api.Endpoints;
 using DiffingApi.Advanced.Application.Abstractions;
 using DiffingApi.Advanced.Application.Services;
@@ -9,10 +10,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment.ContentRootPath);
 builder.Services.AddMemoryCache();
+builder.Services.Configure<DiffJobOptions>(builder.Configuration.GetSection("DiffProcessing"));
 
 builder.Services.AddSingleton<IDiffLockProvider, DiffLockProvider>();
+builder.Services.AddSingleton<IDiffJobQueue, DiffJobQueue>();
 builder.Services.AddScoped<IDiffPairRepository, SqliteDiffPairRepository>();
 builder.Services.AddScoped<IDiffService, DiffService>();
+builder.Services.AddHostedService<DiffJobProcessor>();
 
 var app = builder.Build();
 

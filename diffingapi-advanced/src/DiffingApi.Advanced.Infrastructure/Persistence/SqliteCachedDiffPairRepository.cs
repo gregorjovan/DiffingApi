@@ -1,4 +1,6 @@
-﻿using DiffingApi.Advanced.Application.Abstractions;
+using System.Text.Json;
+using DiffingApi.Advanced.Application.Abstractions;
+using DiffingApi.Advanced.Application.Services;
 using DiffingApi.Advanced.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -38,6 +40,7 @@ public sealed class SqliteDiffPairRepository : IDiffPairRepository
         else
         {
             entity.Left = data;
+            ClearDiffState(entity);
         }
 
         await _dbContext.SaveChangesAsync(ct);
@@ -61,8 +64,67 @@ public sealed class SqliteDiffPairRepository : IDiffPairRepository
         else
         {
             entity.Right = data;
+            ClearDiffState(entity);
         }
 
         await _dbContext.SaveChangesAsync(ct);
+    }
+
+    public async Task MarkPendingAsync(string id, CancellationToken ct = default)
+    {
+        var entity = await _dbContext.DiffPairs
+            .SingleAsync(x => x.Id == id, ct);
+
+        entity.ProcessingStatus = DiffProcessingStatuses.Pending;
+        entity.DiffResultType = null;
+        entity.DiffsJson = null;
+        entity.FailureReason = null;
+
+        await _dbContext.SaveChangesAsync(ct);
+    }
+
+    public async Task MarkProcessingAsync(string id, CancellationToken ct = default)
+    {
+        var entity = await _dbContext.DiffPairs
+            .SingleAsync(x => x.Id == id, ct);
+
+        entity.ProcessingStatus = DiffProcessingStatuses.Processing;
+        entity.FailureReason = null;
+
+        await _dbContext.SaveChangesAsync(ct);
+    }
+
+    public async Task SaveDiffResultAsync(string id, DiffResult result, CancellationToken ct = default)
+    {
+        var entity = await _dbContext.DiffPairs
+            .SingleAsync(x => x.Id == id, ct);
+
+        entity.ProcessingStatus = DiffProcessingStatuses.Completed;
+        entity.DiffResultType = result.DiffResultType;
+        entity.DiffsJson = result.Diffs is null ? null : JsonSerializer.Serialize(result.Diffs);
+        entity.FailureReason = null;
+
+        await _dbContext.SaveChangesAsync(ct);
+    }
+
+    public async Task SaveDiffFailureAsync(string id, string reason, CancellationToken ct = default)
+    {
+        var entity = await _dbContext.DiffPairs
+            .SingleAsync(x => x.Id == id, ct);
+
+        entity.ProcessingStatus = DiffProcessingStatuses.Failed;
+        entity.DiffResultType = null;
+        entity.DiffsJson = null;
+        entity.FailureReason = reason;
+
+        await _dbContext.SaveChangesAsync(ct);
+    }
+
+    private static void ClearDiffState(DiffPairEntity entity)
+    {
+        entity.ProcessingStatus = null;
+        entity.DiffResultType = null;
+        entity.DiffsJson = null;
+        entity.FailureReason = null;
     }
 }

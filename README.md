@@ -14,6 +14,7 @@ This repository contains two variants of the solution:
 - `PUT /v1/diff/{id}/left`
 - `PUT /v1/diff/{id}/right`
 - `GET /v1/diff/{id}`
+- `GET /v1/diff/{id}/status` for the advanced solution's background diff processing status
 - `Equals` result when both payloads are identical
 - `SizeDoNotMatch` result when payload lengths differ
 - `ContentDoNotMatch` result with contiguous `offset`/`length` ranges when payload lengths are equal but contents differ
@@ -126,6 +127,46 @@ If one side is missing, the API returns:
 404 Not Found
 ```
 
+### Poll background diff status
+
+The advanced solution also queues a background diff job automatically when both sides have been uploaded. New clients can poll the non-blocking status endpoint:
+
+```http
+GET /v1/diff/{id}/status
+```
+
+Possible in-progress responses:
+
+```json
+{ "status": "Pending" }
+```
+
+```json
+{ "status": "Processing" }
+```
+
+Completed responses keep the existing result fields:
+
+```json
+{
+  "status": "Completed",
+  "diffResultType": "ContentDoNotMatch",
+  "diffs": [
+    { "offset": 0, "length": 1 },
+    { "offset": 2, "length": 2 }
+  ]
+}
+```
+
+Failed responses include a reason:
+
+```json
+{
+  "status": "Failed",
+  "reason": "Both left and right payloads are required."
+}
+```
+
 If the request body is missing, `data` is null or empty, or `data` is not valid Base64, the API returns:
 
 ```http
@@ -149,6 +190,13 @@ If the request body is missing, `data` is null or empty, or `data` is not valid 
   It does not attempt to calculate an optimal edit script.
 - Actual differing bytes are not returned because the assignment only requires offsets and lengths.
 - Invalid Base64 is treated as a bad request and returns `400 Bad Request`.
+- The advanced solution keeps `GET /v1/diff/{id}` synchronous for backward compatibility.
+  The opt-in `GET /v1/diff/{id}/status` endpoint exposes the background processing status and completed result.
+- Advanced background diff processing uses a global FIFO in-memory queue.
+  `DiffProcessing:MaxConcurrency` in `appsettings.json` controls how many diff jobs may run at the same time across all IDs.
+- Advanced diff processing status and completed results are stored in SQLite on the same `DiffPairs` row as the left and right payloads.
+  Re-uploading either side clears the previous status/result and, once both sides exist, updates the row to `Pending` for a new background job.
+- Per-ID locking still protects updates and reads for the same ID, while the global concurrency limit controls total background diff throughput.
 - Payload size limits and eviction policies were intentionally not added.
   Because the assignment uses an in-memory store and does not require production-scale persistence or retention controls, adding those mechanisms would introduce extra complexity beyond the current scope.
 
